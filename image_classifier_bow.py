@@ -129,8 +129,7 @@ def leaveOneOut():
         if( i < 52 and prediction == 0 or i >= 52 and prediction == 1 ):
              hit += 1
 
-        print(i)
-
-    print(hit)
+        print(prediction)
+        print(hit)
 
 leaveOneOut()
