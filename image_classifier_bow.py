@@ -92,7 +92,8 @@ def leaveOneOut():
 
     hit = 0
 
-    for i in range( total_num_descrip.shape[0] ):
+    #for i in range( total_num_descrip.shape[0] ):
+    for i in range( 1 ):
 
         begin = total_start_descrip[i]
         end = begin + total_num_descrip[i]
@@ -119,6 +120,10 @@ def leaveOneOut():
         classifier = svm.SVC()
         classifier.fit(hist_images, classes)
 
+        print([hist_images[0]])
+        print(classifier.predict([hist_images[0]]))
+        print(classes)
+
         hist = np.zeros( n_clusters )
         for k in range( total_num_descrip[i] ):
             hist[ kmeans.predict( [ total_descriptor_list[begin + k] ] ) ] += 1
@@ -126,9 +131,9 @@ def leaveOneOut():
         norm_hist = hist / total_num_descrip[i]
         prediction = classifier.predict([norm_hist])[0]
 
-        if( i < 52 and prediction == 0 or i >= 52 and prediction == 1 ):
+        if( prediction == total_classes[i] ):
              hit += 1
-
+        print(i)
         print(prediction)
         print(hit)
 
