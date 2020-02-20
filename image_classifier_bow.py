@@ -71,13 +71,14 @@ def handOut():
 
 def leaveOneOut():
 
+    SIZE = 52
+
     total_descriptor_list = np.array( [[ 0 for i in range(128)]] )
     total_start_descrip = [0]
     total_num_descrip = []
 
     for tag in ["Full", "Empty"]:
-        #for i in range(1, 53):
-        for i in range(1, 11):
+        for i in range(1, SIZE+1):
             image = cv2.imread("Dataset/"+tag+"/img"+str(i)+".png", 0)
             descriptors = features(image, extractor)[1]
             total_descriptor_list = np.append(total_descriptor_list, descriptors, axis = 0)
@@ -88,21 +89,22 @@ def leaveOneOut():
     total_num_descrip = np.array(total_num_descrip)
     total_start_descrip = np.array(total_start_descrip)
 
-    # total_classes = np.zeros(104)
-    # total_classes[52:104] = 1
-
-    total_classes = np.zeros(20)
-    total_classes[10:20] = 1
+    total_classes = np.zeros(2*SIZE)
+    total_classes[SIZE:2*SIZE] = 1
 
     hit = 0
 
     #for i in range( total_num_descrip.shape[0] ):
     for i in range( 1 ):
 
-        begin = total_start_descrip[i]
-        end = begin + total_num_descrip[i]
-        descriptor_list = np.delete(total_descriptor_list, np.s_[ begin: end ], axis = 0)
-        num_descrip = np.delete(total_num_descrip, i, axis = 0)
+        emp_begin = total_start_descrip[i]
+        emp_end = emp_begin + total_num_descrip[i]
+
+        full_begin = total_start_descrip[SIZE+i]
+        full_end = full_begin + total_num_descrip[SIZE+i]
+
+        descriptor_list = np.delete(total_descriptor_list, np.append(range(emp_begin, emp_end), range(full_begin, full_end)), axis = 0)
+        num_descrip = np.delete(total_num_descrip, [i, SIZE+i], axis = 0)
 
         kmeans = KMeans(n_clusters = n_clusters)
         kmeans.fit( descriptor_list )
@@ -119,22 +121,34 @@ def leaveOneOut():
 
         hist_images = np.array(hist_images)
 
-        classes = np.delete(total_classes, i, axis = 0)
+        classes = np.delete(total_classes, [i, SIZE+i], axis = 0)
 
         classifier = svm.SVC()
         classifier.fit(hist_images, classes)
 
-        for n in range(19):
+        for n in range(102):
             print(classifier.predict([hist_images[n]]))
 
         hist = np.zeros( n_clusters )
         for k in range( total_num_descrip[i] ):
-            hist[ kmeans.predict( [ total_descriptor_list[begin + k] ] ) ] += 1
+            hist[ kmeans.predict( [ total_descriptor_list[emp_begin + k] ] ) ] += 1
 
         norm_hist = hist / total_num_descrip[i]
         prediction = classifier.predict([norm_hist])[0]
 
         if( prediction == total_classes[i] ):
+             hit += 1
+        print(i)
+        print(prediction)
+        print(hit)
+
+        for k in range( total_num_descrip[i+SIZE] ):
+            hist[ kmeans.predict( [ total_descriptor_list[full_begin + k] ] ) ] += 1
+
+        norm_hist = hist / total_num_descrip[i+SIZE]
+        prediction = classifier.predict([norm_hist])[0]
+
+        if( prediction == total_classes[i+SIZE] ):
              hit += 1
         print(i)
         print(prediction)
