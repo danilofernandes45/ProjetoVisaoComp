@@ -76,7 +76,8 @@ def leaveOneOut():
     total_num_descrip = []
 
     for tag in ["Full", "Empty"]:
-        for i in range(1, 53):
+        #for i in range(1, 53):
+        for i in range(1, 11):
             image = cv2.imread("Dataset/"+tag+"/img"+str(i)+".png", 0)
             descriptors = features(image, extractor)[1]
             total_descriptor_list = np.append(total_descriptor_list, descriptors, axis = 0)
@@ -87,8 +88,11 @@ def leaveOneOut():
     total_num_descrip = np.array(total_num_descrip)
     total_start_descrip = np.array(total_start_descrip)
 
-    total_classes = np.zeros(104)
-    total_classes[52:104] = 1
+    # total_classes = np.zeros(104)
+    # total_classes[52:104] = 1
+
+    total_classes = np.zeros(20)
+    total_classes[10:20] = 1
 
     hit = 0
 
@@ -120,9 +124,8 @@ def leaveOneOut():
         classifier = svm.SVC()
         classifier.fit(hist_images, classes)
 
-        print([hist_images[0]])
-        print(classifier.predict([hist_images[0]]))
-        print(classes)
+        for n in range(19):
+            print(classifier.predict([hist_images[n]]))
 
         hist = np.zeros( n_clusters )
         for k in range( total_num_descrip[i] ):
