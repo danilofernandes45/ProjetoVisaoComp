@@ -94,8 +94,7 @@ def leaveOneOut():
 
     hit = 0
 
-    #for i in range( total_num_descrip.shape[0] ):
-    for i in range( 1 ):
+    for i in range( SIZE ):
 
         emp_begin = total_start_descrip[i]
         emp_end = emp_begin + total_num_descrip[i]
@@ -138,9 +137,6 @@ def leaveOneOut():
 
         if( prediction == total_classes[i] ):
              hit += 1
-        print(i)
-        print(prediction)
-        print(hit)
 
         for k in range( total_num_descrip[i+SIZE] ):
             hist[ kmeans.predict( [ total_descriptor_list[full_begin + k] ] ) ] += 1
@@ -151,7 +147,6 @@ def leaveOneOut():
         if( prediction == total_classes[i+SIZE] ):
              hit += 1
         print(i)
-        print(prediction)
         print(hit)
 
 leaveOneOut()
