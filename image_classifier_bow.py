@@ -192,9 +192,6 @@ def leaveOneOut():
         classifier = svm.SVC()
         classifier.fit(hist_images, classes)
 
-        for n in range(98):
-            print(classifier.predict([hist_images[n]]))
-
         hist = np.zeros( n_clusters )
         for k in range( total_num_descrip[i] ):
             hist[ kmeans.predict( [ total_descriptor_list[emp_begin + k] ] ) ] += 1
@@ -216,5 +213,5 @@ def leaveOneOut():
         print(i)
         print(hit)
 
-#leaveOneOut()
-kFoldCrossValidation()
+leaveOneOut()
+#kFoldCrossValidation()
