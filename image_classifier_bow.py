@@ -69,9 +69,77 @@ def handOut():
 
     print(hit)
 
+def kFoldCrossValidation():
+
+    SIZE = 50
+
+    total_descriptor_list = np.array( [[ 0 for i in range(128)]] )
+    total_start_descrip = [0]
+    total_num_descrip = []
+
+    for i in range(1, SIZE+1):
+        for tag in ["Full", "Empty"]:
+            image = cv2.imread("Dataset/"+tag+"/img"+str(i)+".png", 0)
+            descriptors = features(image, extractor)[1]
+            total_descriptor_list = np.append(total_descriptor_list, descriptors, axis = 0)
+            total_num_descrip.append( descriptors.shape[0] )
+            total_start_descrip.append( total_start_descrip[-1] + descriptors.shape[0] )
+
+    total_descriptor_list = np.delete(total_descriptor_list, 0, axis = 0)
+    total_num_descrip = np.array(total_num_descrip)
+    total_start_descrip = np.array(total_start_descrip)
+
+    total_classes = np.zeros(2*SIZE)
+    total_classes[range(1, 2*SIZE,2)] = 1
+
+    hit = 0
+    K = 20
+
+    for i in range( 0, 2*SIZE, K ):
+
+        begin = total_start_descrip[i]
+        end = total_start_descrip[i + K]
+
+        descriptor_list = np.delete(total_descriptor_list, np.s_[begin:end], axis = 0)
+        num_descrip = np.delete(total_num_descrip, range(i, i+K), axis = 0)
+        classes = np.delete(total_classes, range(i, i+K), axis = 0)
+
+        kmeans = KMeans(n_clusters = n_clusters)
+        kmeans.fit( descriptor_list )
+
+        hist_images = []
+        idx = 0
+        for num in num_descrip:
+            hist = np.zeros( n_clusters )
+            for k in range(num):
+                hist[kmeans.labels_[idx]] += 1
+                idx += 1
+            norm_hist = hist / num
+            hist_images.append( norm_hist )
+
+        hist_images = np.array(hist_images)
+
+        classifier = svm.SVC()
+        classifier.fit(hist_images, classes)
+
+        for j in range(i, i+K):
+            hist = np.zeros( n_clusters )
+            j_begin = total_start_descrip[j]
+            for k in range( total_num_descrip[j] ):
+                hist[ kmeans.predict( [ total_descriptor_list[j_begin + k] ] ) ] += 1
+
+            norm_hist = hist / total_num_descrip[j]
+            prediction = classifier.predict([norm_hist])[0]
+
+            if( prediction == total_classes[j] ):
+                 hit += 1
+
+        print(hit)
+
+
 def leaveOneOut():
 
-    SIZE = 52
+    SIZE = 50
 
     total_descriptor_list = np.array( [[ 0 for i in range(128)]] )
     total_start_descrip = [0]
@@ -104,6 +172,7 @@ def leaveOneOut():
 
         descriptor_list = np.delete(total_descriptor_list, np.append(range(emp_begin, emp_end), range(full_begin, full_end)), axis = 0)
         num_descrip = np.delete(total_num_descrip, [i, SIZE+i], axis = 0)
+        classes = np.delete(total_classes, [i, SIZE+i], axis = 0)
 
         kmeans = KMeans(n_clusters = n_clusters)
         kmeans.fit( descriptor_list )
@@ -120,12 +189,10 @@ def leaveOneOut():
 
         hist_images = np.array(hist_images)
 
-        classes = np.delete(total_classes, [i, SIZE+i], axis = 0)
-
         classifier = svm.SVC()
         classifier.fit(hist_images, classes)
 
-        for n in range(102):
+        for n in range(98):
             print(classifier.predict([hist_images[n]]))
 
         hist = np.zeros( n_clusters )
@@ -149,4 +216,5 @@ def leaveOneOut():
         print(i)
         print(hit)
 
-leaveOneOut()
+#leaveOneOut()
+kFoldCrossValidation()
