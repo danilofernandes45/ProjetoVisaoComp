@@ -92,7 +92,8 @@ def kFoldCrossValidation():
     total_classes = np.zeros(2*SIZE)
     total_classes[range(1, 2*SIZE,2)] = 1
 
-    hit = 0
+    hit0 = 0
+    hit1 = 0
     K = 20
 
     for i in range( 0, 2*SIZE, K ):
@@ -119,7 +120,7 @@ def kFoldCrossValidation():
 
         hist_images = np.array(hist_images)
 
-        classifier = svm.SVC()
+        classifier = svm.SVC(gamma = 'scale')
         classifier.fit(hist_images, classes)
 
         for j in range(i, i+K):
@@ -132,9 +133,13 @@ def kFoldCrossValidation():
             prediction = classifier.predict([norm_hist])[0]
 
             if( prediction == total_classes[j] ):
-                 hit += 1
+                if(total_classes[j] == 0):
+                    hit0 += 1
+                else:
+                    hit1 += 1
 
-        print(hit)
+        print(hit0)
+        print(hit1)
 
 
 def leaveOneOut():
@@ -160,7 +165,8 @@ def leaveOneOut():
     total_classes = np.zeros(2*SIZE)
     total_classes[SIZE:2*SIZE] = 1
 
-    hit = 0
+    hit0 = 0
+    hit1 = 0
 
     for i in range( SIZE ):
 
@@ -189,7 +195,7 @@ def leaveOneOut():
 
         hist_images = np.array(hist_images)
 
-        classifier = svm.SVC()
+        classifier = svm.SVC(gamma = 'scale')
         classifier.fit(hist_images, classes)
 
         hist = np.zeros( n_clusters )
@@ -200,7 +206,7 @@ def leaveOneOut():
         prediction = classifier.predict([norm_hist])[0]
 
         if( prediction == total_classes[i] ):
-             hit += 1
+             hit0 += 1
 
         for k in range( total_num_descrip[i+SIZE] ):
             hist[ kmeans.predict( [ total_descriptor_list[full_begin + k] ] ) ] += 1
@@ -209,9 +215,10 @@ def leaveOneOut():
         prediction = classifier.predict([norm_hist])[0]
 
         if( prediction == total_classes[i+SIZE] ):
-             hit += 1
+             hit1 += 1
         print(i)
-        print(hit)
+        print(hit0)
+        print(hit1)
 
-leaveOneOut()
-#kFoldCrossValidation()
+#leaveOneOut()
+kFoldCrossValidation()
